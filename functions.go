@@ -9,7 +9,7 @@ func All(promises []*Promise) *Promise {
 
 		for i := range promises {
 			_i := i
-			promises[i].Then(func(value any) any {
+			promises[_i].Then(func(value any) any {
 				result[_i] = value
 				done <- true
 				return nil
@@ -38,7 +38,7 @@ func AllSettled(promises []*Promise) *Promise {
 
 		for i := range promises {
 			_i := i
-			promises[i].Then(func(value any) any {
+			promises[_i].Then(func(value any) any {
 				result[_i] = value
 				done <- true
 				return nil
@@ -104,29 +104,29 @@ func Race(promises []*Promise) *Promise {
 	promise := Create()
 
 	go func() {
-        status := make(chan bool, 1)
-        result := make(chan any, 1)
+		status := make(chan bool, 1)
+		result := make(chan any, 1)
 
-        for i := range promises {
-            _i := i
-            promises[_i].Then(func(value any) any {
-                status <- true
-                result <- value
-                return nil
-            }).Catch(func(value any) any {
-                status <- false
-                result <- value
-                return nil
-            })
-        }
+		for i := range promises {
+			_i := i
+			promises[_i].Then(func(value any) any {
+				status <- true
+				result <- value
+				return nil
+			}).Catch(func(value any) any {
+				status <- false
+				result <- value
+				return nil
+			})
+		}
 
-        s := <- status
-        v := <- result
-        if s {
-            promise.Resolve(v)
-        } else {
-            promise.Reject(v)
-        }
+		s := <-status
+		v := <-result
+		if s {
+			promise.Resolve(v)
+		} else {
+			promise.Reject(v)
+		}
 	}()
 
 	return promise

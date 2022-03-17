@@ -38,12 +38,12 @@ func (p *Promise) Reject(reason any) {
 }
 
 func (p *Promise) Wait() (string, any, any) {
-	<-p.value
 	<-p.status
+    <-p.value
 	<-p.reason
 
-	v := <-p.value
 	s := <-p.status
+    v := <-p.value
 	r := <-p.reason
 
 	return s, v, r
@@ -52,14 +52,7 @@ func (p *Promise) Wait() (string, any, any) {
 func New(f func(resolve Callback, reject Callback)) *Promise {
 	p := Create()
 
-	res := func(x any) {
-		p.Resolve(x)
-	}
-	rej := func(x any) {
-		p.Reject(x)
-	}
-
-	go f(res, rej)
+	go f(p.Resolve, p.Reject)
 
 	return p
 }
@@ -73,9 +66,9 @@ func (p *Promise) Then(resolve Func) *Promise {
 		if status != "fulfilled" {
 			promise.Reject(reason)
 		} else {
-            result := resolve(value)
-            promise.Resolve(result)
-        }
+			result := resolve(value)
+			promise.Resolve(result)
+		}
 	}()
 
 	return promise
@@ -90,9 +83,9 @@ func (p *Promise) Catch(reject Func) *Promise {
 		if status != "reject" {
 			promise.Resolve(value)
 		} else {
-            result := reject(reason)
-            promise.Reject(result)
-        }
+			result := reject(reason)
+			promise.Reject(result)
+		}
 	}()
 
 	return promise
